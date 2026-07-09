@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hearth & Home — Community Recipe Box</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#main" class="logo">Hearth<span>&amp;</span>Home</a>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav" aria-label="Toggle navigation">
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+      </button>
+      <nav class="primary-nav" id="primaryNav" aria-label="Primary">
+        <ul>
+          <li><a href="#recipes">Recipes</a></li>
+          <li><a href="#submit">Add Recipe</a></li>
+          <li><a href="#register">Join</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- STATUS BANNER (hidden by default) -->
+    <div class="status-banner" id="statusBanner" role="alert" aria-live="polite" hidden>
+      <span class="status-banner__msg" id="statusMsg"></span>
+      <button class="status-banner__close" id="statusClose" aria-label="Dismiss">✕</button>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">Recipes worth keeping</p>
+          <h1 id="hero-heading">Cook what your <em>grandmother</em> would recognize.</h1>
+          <p class="hero-lede">A growing box of tested, hand-written recipes — saved from cards, napkins, and memory.</p>
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="#recipes">Browse recipes</a>
+            <a class="btn btn--ghost" href="#submit">Add yours</a>
+          </div>
+          <div class="api-status" id="apiStatus">
+            <span class="api-dot" id="apiDot"></span>
+            <span id="apiStatusText">Checking API…</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-card hero-card--back"></div>
+          <div class="hero-card hero-card--front">
+            <span class="hero-card__tag">Live from DB</span>
+            <span class="hero-card__title" id="heroCardTitle">Loading…</span>
+            <span class="hero-card__meta" id="heroCardMeta"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTER BAR -->
+    <section class="filter-bar" aria-label="Filter recipes">
+      <div class="container filter-inner">
+        <label for="filterCategory" class="sr-only">Filter by category</label>
+        <select id="filterCategory" class="filter-select">
+          <option value="">All categories</option>
+          <option>Soups &amp; Stews</option>
+          <option>Baking</option>
+          <option>Salads</option>
+          <option>Mains</option>
+          <option>Desserts</option>
+        </select>
+
+        <label for="filterLevel" class="sr-only">Filter by difficulty</label>
+        <select id="filterLevel" class="filter-select">
+          <option value="">All levels</option>
+          <option>Easy</option>
+          <option>Medium</option>
+          <option>Hard</option>
+        </select>
+
+        <button class="btn btn--ghost btn--sm" id="clearFilters">Clear</button>
+
+        <span class="recipe-count" id="recipeCount"></span>
+      </div>
+    </section>
+
+    <!-- RECIPE GRID -->
+    <section class="recipes" id="recipes" aria-labelledby="recipes-heading">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="recipes-heading">From the box</h2>
+          <p>Real recipes from the database — add, edit, or delete them below.</p>
+        </div>
+
+        <!-- Loading skeleton -->
+        <div class="recipe-grid" id="recipeGrid" aria-live="polite" aria-label="Recipe list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState" hidden>
+          <p>No recipes match your filters.</p>
+          <button class="btn btn--ghost btn--sm" id="clearFilters2">Clear filters</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECIPE DETAIL MODAL -->
+    <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+      <div class="modal">
+        <button class="modal__close" id="modalClose" aria-label="Close recipe">✕</button>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- ADD RECIPE FORM -->
+    <section class="submit" id="submit" aria-labelledby="submit-heading">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="submit-heading">Add a recipe</h2>
+          <p>This form POSTs to <code>/api/recipes</code> and the grid updates in real time.</p>
+        </div>
+
+        <form class="recipe-form" id="addRecipeForm" aria-label="Add a recipe" novalidate>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="rTitle">Recipe name <span aria-hidden="true">*</span></label>
+              <input type="text" id="rTitle" name="title" required minlength="3" placeholder="e.g. Garlic Butter Pasta">
+            </div>
+            <div class="form-field">
+              <label for="rCategory">Category <span aria-hidden="true">*</span></label>
+              <select id="rCategory" name="category" required>
+                <option value="">Choose…</option>
+                <option>Soups &amp; Stews</option>
+                <option>Baking</option>
+                <option>Salads</option>
+                <option>Mains</option>
+                <option>Desserts</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="rLevel">Difficulty</label>
+              <select id="rLevel" name="level">
+                <option>Easy</option>
+                <option>Medium</option>
+                <option>Hard</option>
+              </select>
+            </div>
+            <div class="form-field form-row">
+              <div class="form-field">
+                <label for="rTime">Time (mins)</label>
+                <input type="number" id="rTime" name="time_mins" min="1" placeholder="30">
+              </div>
+              <div class="form-field">
+                <label for="rServes">Serves</label>
+                <input type="number" id="rServes" name="serves" min="1" placeholder="4">
+              </div>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="rIngredients">Ingredients <span aria-hidden="true">*</span></label>
+              <textarea id="rIngredients" name="ingredients" rows="4" required placeholder="One ingredient per line&#10;e.g. 200g pasta&#10;3 garlic cloves"></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="rSteps">Method <span aria-hidden="true">*</span></label>
+              <textarea id="rSteps" name="steps" rows="5" required placeholder="One step per line&#10;e.g. Boil salted water&#10;Fry garlic in butter"></textarea>
+            </div>
+          </div>
+          <div class="form-errors" id="formErrors" role="alert" aria-live="polite" hidden></div>
+          <button type="submit" class="btn btn--primary" id="submitBtn">Save recipe</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- REGISTER FORM -->
+    <section class="collections" id="register" aria-labelledby="register-heading">
+      <div class="container collections-inner">
+        <div class="collections-copy">
+          <h2 id="register-heading">Join the community</h2>
+          <p>Create an account to save your own recipes. POSTs to <code>/api/users</code>.</p>
+        </div>
+        <form class="signup-form" id="registerForm" aria-label="Register" novalidate>
+          <div class="form-field">
+            <label for="uName">Your name</label>
+            <input type="text" id="uName" name="name" required placeholder="Grace Hopper">
+          </div>
+          <div class="form-field">
+            <label for="uEmail">Email</label>
+            <input type="email" id="uEmail" name="email" required placeholder="you@example.com">
+          </div>
+          <div class="form-field">
+            <label for="uPassword">Password (min 8 chars)</label>
+            <input type="password" id="uPassword" name="password" required minlength="8" placeholder="••••••••">
+          </div>
+          <div class="form-errors" id="regErrors" role="alert" aria-live="polite" hidden></div>
+          <button type="submit" class="btn btn--primary btn--block" id="regBtn">Create account</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <p class="logo">Hearth<span>&amp;</span>Home</p>
+        <p>Project 4 — Full Stack Integration. Frontend ↔ REST API ↔ SQLite.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <div>
+          <h3>Stack</h3>
+          <ul>
+            <li>HTML5 · CSS3 · Vanilla JS</li>
+            <li>Node.js · Express</li>
+            <li>SQLite (sql.js)</li>
+          </ul>
+        </div>
+        <div>
+          <h3>API</h3>
+          <ul>
+            <li><a href="/api/health" target="_blank">/api/health</a></li>
+            <li><a href="/api/recipes" target="_blank">/api/recipes</a></li>
+            <li><a href="/api/users" target="_blank">/api/users</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <p class="footer-copy">&copy; 2026 DecodeLabs — Project 4: Full Stack Integration</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
